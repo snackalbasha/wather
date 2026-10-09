@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الطقس | Weather</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--tx:#fff;--tx2:rgba(255,255,255,.72);--card:rgba(255,255,255,.15);--b1:#2b5876;--b2:#4e4376}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--card:rgba(0,0,0,.22)}}
+:root[data-theme="dark"]{--card:rgba(0,0,0,.22)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:var(--tx);background:#1b2b44;background:linear-gradient(160deg,var(--b1),var(--b2)) fixed;min-height:100vh;transition:background .6s}
+.w{max-width:520px;margin:auto;padding:14px}
+.bar{display:flex;gap:8px}
+input{flex:1;min-width:0;padding:12px 16px;border-radius:16px;border:0;background:var(--card);color:var(--tx);font-size:16px;outline:0}
+input::placeholder{color:var(--tx2)}
+button{border:0;background:var(--card);color:var(--tx);border-radius:16px;padding:10px 14px;font-size:15px;cursor:pointer}
+button.on{background:#fff;color:#223}
+.res{background:var(--card);border-radius:16px;margin-top:6px;overflow:hidden;backdrop-filter:blur(14px)}
+.res div{padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.1)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0}
+.chips button{white-space:nowrap;padding:8px 14px;font-size:14px}
+.tools{display:flex;gap:8px;justify-content:flex-end}
+.hero{text-align:center;padding:18px 0 8px}
+.hero .city{font-size:26px;font-weight:600}
+.hero .sub{color:var(--tx2);font-size:14px;margin-top:2px}
+.hero .ic{font-size:84px;line-height:1.2;animation:fl 4s ease-in-out infinite}
+.hero .t{font-size:84px;font-weight:200;line-height:1;direction:ltr}
+.hero .d{font-size:20px;margin-top:6px}
+.hero .hl{color:var(--tx2);margin-top:4px;direction:ltr}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.card{background:var(--card);border-radius:22px;padding:14px;margin-top:12px;backdrop-filter:blur(14px)}
+.card h3{font-size:13px;color:var(--tx2);font-weight:500;margin-bottom:10px}
+.row{display:flex;gap:16px;overflow-x:auto;padding-bottom:4px}
+.h{text-align:center;min-width:54px;font-size:14px}
+.h b{display:block;font-weight:500;margin:4px 0;font-size:16px;direction:ltr}
+.h small{color:#8fd3ff;font-size:11px;display:block;height:14px}
+.day{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.day:last-child{border:0}
+.day .n{width:70px}.day .i{font-size:24px;width:32px;text-align:center}
+.day .r{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.2);position:relative}
+.day .r i{position:absolute;top:0;bottom:0;border-radius:5px;background:linear-gradient(90deg,#7bdcff,#ffd36b)}
+.day .v{direction:ltr;width:84px;text-align:end;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .card{margin:0}
+.grid .card b{font-size:26px;font-weight:400;display:block;direction:ltr;text-align:start}
+.grid .card span{font-size:13px;color:var(--tx2)}
+.note{background:rgba(255,190,60,.25);border-radius:14px;padding:10px 14px;margin-top:10px;font-size:13px}
+.ld{text-align:center;padding:60px 0;color:var(--tx2)}
+</style></head><body><div class="w">
+<div class="tools"><button id="u"></button><button id="lg"></button></div>
+<div class="bar" style="margin-top:10px"><input id="q" autocomplete="off"><button id="gp">📍</button></div>
+<div id="sr"></div>
+<div class="chips" id="ch"></div>
+<div id="app"><div class="ld">…</div></div>
+</div>
+<script>
+var S={lang:'ar',f:false,cur:null};
+try{var sv=JSON.parse(localStorage.getItem('wx')||'{}');if(sv.lang)S.lang=sv.lang;if(sv.f)S.f=sv.f;S.cur=sv.cur||null}catch(e){}
+var TX={ar:{ph:'ابحث عن مدينة أو منطقة…',feels:'الإحساس',hum:'الرطوبة',wind:'الرياح',uv:'الأشعة فوق البنفسجية',pr:'الضغط',vis:'مدى الرؤية',sr:'الشروق',ss:'الغروب',rain:'احتمال المطر',hrs:'ساعة بساعة',days:'الأيام السبعة',now:'الآن',today:'اليوم',hi:'عليا',lo:'دنيا',kmh:'كم/س',km:'كم',demo:'تعذر الاتصال بالإنترنت، هذه بيانات تجريبية وليست حقيقية.',none:'لا توجد نتائج',lg:'English'},
+en:{ph:'Search for a city or region…',feels:'Feels like',hum:'Humidity',wind:'Wind',uv:'UV index',pr:'Pressure',vis:'Visibility',sr:'Sunrise',ss:'Sunset',rain:'Chance of rain',hrs:'Hourly',days:'7-day forecast',now:'Now',today:'Today',hi:'High',lo:'Low',kmh:'km/h',km:'km',demo:'Could not connect to the internet. This is demo data, not real.',none:'No results',lg:'العربية'}};
+var CITIES=[['بيروت','Beirut',33.89,35.5],['دبي','Dubai',25.2,55.27],['الرياض','Riyadh',24.71,46.68],['القاهرة','Cairo',30.04,31.24],['عمّان','Amman',31.95,35.93],['اسطنبول','Istanbul',41.01,28.98],['باريس','Paris',48.85,2.35],['لندن','London',51.5,-0.12],['نيويورك','New York',40.71,-74.0],['طوكيو','Tokyo',35.68,139.69],['سيدني','Sydney',-33.87,151.21]];
+// code: [ar,en,day icon,night icon,theme]
+var WC={0:['صافٍ','Clear','☀️','🌙','c'],1:['صافٍ غالباً','Mostly clear','🌤️','🌙','c'],2:['غائم جزئياً','Partly cloudy','⛅','☁️','k'],3:['غائم','Overcast','☁️','☁️','k'],45:['ضباب','Fog','🌫️','🌫️','f'],48:['ضباب','Fog','🌫️','🌫️','f'],51:['رذاذ','Drizzle','🌦️','🌧️','r'],53:['رذاذ','Drizzle','🌦️','🌧️','r'],55:['رذاذ كثيف','Heavy drizzle','🌧️','🌧️','r'],61:['مطر خفيف','Light rain','🌦️','🌧️','r'],63:['مطر','Rain','🌧️','🌧️','r'],65:['مطر غزير','Heavy rain','🌧️','🌧️','r'],71:['ثلج خفيف','Light snow','🌨️','🌨️','s'],73:['ثلج','Snow','❄️','❄️','s'],75:['ثلج كثيف','Heavy snow','❄️','❄️','s'],80:['زخات مطر','Showers','🌦️','🌧️','r'],81:['زخات مطر','Showers','🌧️','🌧️','r'],82:['زخات عنيفة','Violent showers','⛈️','⛈️','t'],95:['عاصفة رعدية','Thunderstorm','⛈️','⛈️','t'],96:['عاصفة وبَرَد','Storm with hail','⛈️','⛈️','t'],99:['عاصفة وبَرَد','Storm with hail','⛈️','⛈️','t']};
+var TH={c:['#2193b0','#6dd5ed'],cn:['#0f2027','#2c5364'],k:['#485563','#29323c'],f:['#757f9a','#d7dde8'],r:['#314755','#26a0da'],s:['#8e9eab','#6a85b6'],t:['#232526','#414345']};
+function wc(c){return WC[c]||WC[[0,1,2,3,45,51,61,71,80,95].filter(function(k){return k<=c}).pop()]}
+var L=function(){return TX[S.lang]},I=function(){return S.lang==='ar'?0:1};
+function tp(c){var v=S.f?c*9/5+32:c;return Math.round(v)+'°'}
+function save(){try{localStorage.setItem('wx',JSON.stringify({lang:S.lang,f:S.f,cur:S.cur}))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function ui(){document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';$('q').placeholder=L().ph;$('lg').textContent=L().lg;$('u').textContent=S.f?'°F':'°C';
+$('ch').innerHTML=CITIES.map(function(c,i){return '<button data-i="'+i+'">'+c[I()]+'</button>'}).join('')}
+function fmtH(t){return parseInt(t.slice(11,13),10)+':00'}
+function load(lat,lon,name){
+S.cur={lat:lat,lon:lon,name:name};save();$('app').innerHTML='<div class="ld">…</div>';
+var u='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability,visibility,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7';
+fetch(u).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){draw(d,name,false)}).catch(function(){draw(demo(),name,true)})}
+function demo(){var n=new Date(),p=function(x){return x<10?'0'+x:x},iso=function(d){return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())},o={current:{time:iso(n)+'T'+p(n.getHours())+':00',temperature_2m:24,apparent_temperature:25,relative_humidity_2m:55,wind_speed_10m:14,pressure_msl:1015,weather_code:2,is_day:1},hourly:{time:[],temperature_2m:[],weather_code:[],precipitation_probability:[],visibility:[],is_day:[]},daily:{time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],sunrise:[],sunset:[],uv_index_max:[]}};
+for(var h=0;h<168;h++){var t=new Date(n.getFullYear(),n.getMonth(),n.getDate(),h);o.hourly.time.push(iso(t)+'T'+p(t.getHours())+':00');o.hourly.temperature_2m.push(20+Math.round(5*Math.sin((t.getHours()-9)/24*6.28)));o.hourly.weather_code.push(2);o.hourly.precipitation_probability.push(10);o.hourly.visibility.push(20000);o.hourly.is_day.push(t.getHours()>6&&t.getHours()<19?1:0)}
+for(var i=0;i<7;i++){var x=new Date(n.getFullYear(),n.getMonth(),n.getDate()+i);o.daily.time.push(iso(x));o.daily.weather_code.push([0,2,3,61,1,2,0][i]);o.daily.temperature_2m_max.push(26+i%3);o.daily.temperature_2m_min.push(18+i%2);o.daily.sunrise.push(iso(x)+'T06:30');o.daily.sunset.push(iso(x)+'T18:30');o.daily.uv_index_max.push(7)}
+return o}
+function draw(d,name,isDemo){
+var c=d.current,i=I(),w=wc(c.weather_code),day=c.is_day===1,th=w[4]==='c'&&!day?'cn':w[4];
+document.documentElement.style.setProperty('--b1',TH[th][0]);document.documentElement.style.setProperty('--b2',TH[th][1]);
+var k=Math.max(0,d.hourly.time.indexOf(c.time.slice(0,13)+':00')),dd=d.daily,t=L();
+var hrs='';for(var j=k;j<k+24&&j<d.hourly.time.length;j++){var hw=wc(d.hourly.weather_code[j]);hrs+='<div class="h">'+(j===k?t.now:fmtH(d.hourly.time[j]))+'<br>'+(d.hourly.is_day[j]?hw[2]:hw[3])+'<b>'+tp(d.hourly.temperature_2m[j])+'</b><small>'+(d.hourly.precipitation_probability[j]>=20?'💧'+d.hourly.precipitation_probability[j]+'%':'')+'</small></div>'}
+var mn=Math.min.apply(0,dd.temperature_2m_min),mx=Math.max.apply(0,dd.temperature_2m_max),dl='';
+dd.time.forEach(function(s,j){var dw=wc(dd.weather_code[j]),a=(dd.temperature_2m_min[j]-mn)/(mx-mn||1)*100,b=(dd.temperature_2m_max[j]-mn)/(mx-mn||1)*100,nm=j===0?t.today:new Date(s+'T12:00').toLocaleDateString(S.lang==='ar'?'ar':'en',{weekday:'short'});
+dl+='<div class="day"><span class="n">'+nm+'</span><span class="i">'+dw[2]+'</span><span class="r"><i style="left:'+a+'%;right:'+(100-b)+'%"></i></span><span class="v">'+tp(dd.temperature_2m_min[j])+' / '+tp(dd.temperature_2m_max[j])+'</span></div>'});
+var vis=d.hourly.visibility[k],box=function(l,v){return '<div class="card"><span>'+l+'</span><b>'+v+'</b></div>'};
+$('app').innerHTML=(isDemo?'<div class="note">'+t.demo+'</div>':'')+
+'<div class="hero"><div class="city">'+name+'</div><div class="ic">'+(day?w[2]:w[3])+'</div><div class="t">'+tp(c.temperature_2m)+'</div><div class="d">'+w[i]+'</div><div class="hl">'+t.hi+' '+tp(dd.temperature_2m_max[0])+' · '+t.lo+' '+tp(dd.temperature_2m_min[0])+'</div></div>'+
+'<div class="card"><h3>'+t.hrs+'</h3><div class="row">'+hrs+'</div></div>'+
+'<div class="card"><h3>'+t.days+'</h3>'+dl+'</div>'+
+'<div class="grid" style="margin-top:12px">'+box(t.feels,tp(c.apparent_temperature))+box(t.hum,Math.round(c.relative_humidity_2m)+'%')+box(t.wind,Math.round(c.wind_speed_10m)+' '+t.kmh)+box(t.uv,Math.round(dd.uv_index_max[0]))+box(t.pr,Math.round(c.pressure_msl)+' hPa')+box(t.vis,Math.round((vis||0)/1000)+' '+t.km)+box(t.sr,dd.sunrise[0].slice(11,16))+box(t.ss,dd.sunset[0].slice(11,16))+'</div>'}
+var tm;
+$('q').addEventListener('input',function(e){clearTimeout(tm);var v=e.target.value.trim();if(v.length<2){$('sr').innerHTML='';return}
+tm=setTimeout(function(){fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&language='+S.lang+'&name='+encodeURIComponent(v)).then(function(r){return r.json()}).then(function(d){var r=d.results||[];window._r=r;$('sr').innerHTML='<div class="res">'+(r.length?r.map(function(x,i){return '<div data-r="'+i+'">'+x.name+(x.admin1?'، '+x.admin1:'')+(x.country?' — '+x.country:'')+'</div>'}).join(''):'<div>'+L().none+'</div>')+'</div>'}).catch(function(){$('sr').innerHTML=''})},350)});
+$('sr').addEventListener('click',function(e){var i=e.target.getAttribute('data-r');if(i===null)return;var x=window._r[i];$('sr').innerHTML='';$('q').value='';load(x.latitude,x.longitude,x.name+(x.country?'، '+x.country:''))});
+$('ch').addEventListener('click',function(e){var i=e.target.getAttribute('data-i');if(i===null)return;var c=CITIES[i];load(c[2],c[3],c[I()])});
+$('gp').onclick=function(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(function(p){load(p.coords.latitude,p.coords.longitude,S.lang==='ar'?'موقعي':'My location')},function(){})};
+$('lg').onclick=function(){S.lang=S.lang==='ar'?'en':'ar';save();ui();if(S.cur)load(S.cur.lat,S.cur.lon,S.cur.name)};
+$('u').onclick=function(){S.f=!S.f;save();ui();if(S.cur)load(S.cur.lat,S.cur.lon,S.cur.name)};
+ui();if(S.cur)load(S.cur.lat,S.cur.lon,S.cur.name);else load(CITIES[0][2],CITIES[0][3],CITIES[0][I()]);
+</script></body></html>
