@@ -1,0 +1,16 @@
+{
+  "name": "الطقس",
+  "short_name": "الطقس",
+  "description": "طقس دقيق لكل مدن العالم مع رادار مطر وأوقات صلاة",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1668c7",
+  "theme_color": "#1668c7",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
